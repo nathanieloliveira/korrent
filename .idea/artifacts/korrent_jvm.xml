@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="korrent-jvm">
+    <output-path>C:\korrent\build\libs</output-path>
+    <root id="archive" name="korrent-jvm.jar">
+      <element id="module-output" name="korrent.jvmMain" />
+    </root>
+  </artifact>
+</component>
