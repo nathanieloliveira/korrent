@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="Source Files" pattern="src[korrent.commonMain]:com.korrent..*||src[korrent.jvmMain]:com.korrent..*" />
+</component>
