@@ -8,6 +8,7 @@ import kotlinx.serialization.StringFormat
 class Ben : AbstractSerialFormat(), StringFormat {
 
     override fun <T> parse(deserializer: DeserializationStrategy<T>, string: String): T {
+
         TODO()
     }
 
