@@ -17,19 +17,38 @@
 
 package com.korrent.bencode
 
-import kotlinx.serialization.AbstractSerialFormat
-import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.SerializationStrategy
-import kotlinx.serialization.StringFormat
+import kotlinx.serialization.*
+import kotlinx.serialization.context.SerialContext
+import kotlinx.serialization.context.SerialModule
 
-class Ben : AbstractSerialFormat(), StringFormat {
+class Ben(val updateMode: UpdateMode = UpdateMode.OVERWRITE) : AbstractSerialFormat(), StringFormat {
 
     override fun <T> parse(deserializer: DeserializationStrategy<T>, string: String): T {
-
-        TODO()
+        val reader = BenReader(string)
+        val input = StreamingBenInput(this, WriteMode.OBJ, reader)
+        val result = input.decode(deserializer)
+        if (!reader.isDone) {
+            error("Reader has not consumed the whole input: $reader")
+        }
+        return result
     }
 
     override fun <T> stringify(serializer: SerializationStrategy<T>, obj: T): String {
         TODO()
+    }
+
+    companion object : StringFormat {
+        val plain = Ben()
+        override val context: SerialContext
+            get() = plain.context
+
+        override fun install(module: SerialModule) = plain.install(module)
+
+        override fun <T> parse(deserializer: DeserializationStrategy<T>, string: String): T =
+            plain.parse(deserializer, string)
+
+        override fun <T> stringify(serializer: SerializationStrategy<T>, obj: T): String =
+            plain.stringify(serializer, obj)
+
     }
 }

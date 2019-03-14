@@ -17,9 +17,13 @@
 
 package com.korrent.bencode
 
-import kotlinx.serialization.SerializationException
+import kotlinx.serialization.CompositeDecoder
+import kotlinx.serialization.Decoder
 
-sealed class BenException(message: String): SerializationException(message)
+public interface BenInput : Decoder, CompositeDecoder {
 
-class BenSpecificationException(message: String) : BenException(message)
-class BenParsingException(position: Int, message: String): BenException("Invalid Bencoding at $position: $message")
+    /**
+     * instance of current [Ben]
+     */
+    public val ben: Ben
+}

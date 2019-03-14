@@ -24,7 +24,7 @@ internal const val STR_SEP    = ':'
 internal const val BEGIN_LIST = 'l'
 internal const val BEGIN_DICT = 'd'
 internal const val BEGIN_INT  = 'i'
-internal const val END_OBJ   = 'e'
+internal const val END_STRUCT = 'e'
 
 internal const val INVALID = 0.toChar()
 
@@ -34,11 +34,13 @@ internal const val TC_BEGIN_STR: Byte = 1
 internal const val TC_BEGIN_LIST: Byte = 2
 internal const val TC_BEGIN_DICT: Byte = 3
 internal const val TC_BEGIN_INT: Byte = 4
-internal const val TC_END_OBJ: Byte = 5
-internal const val TC_INVALID: Byte = 6
-internal const val TC_WS: Byte = 7
-internal const val TC_OTHER: Byte = 8
-internal const val TC_EOF: Byte = 9
+internal const val TC_END_STRUCT: Byte = 5
+internal const val TC_BEGIN_OBJ: Byte = 6
+internal const val TC_END_OBJ: Byte = 7
+internal const val TC_INVALID: Byte = 8
+internal const val TC_WS: Byte = 9
+internal const val TC_OTHER: Byte = 10
+internal const val TC_EOF: Byte = 11
 
 // mapping from chars to token classes
 private const val CTC_MAX = 0x7e
@@ -61,7 +63,7 @@ internal val C2TC = ByteArray(CTC_MAX).apply {
     initC2TC(BEGIN_LIST, TC_BEGIN_LIST)
     initC2TC(BEGIN_DICT, TC_BEGIN_DICT)
     initC2TC(BEGIN_INT, TC_BEGIN_INT)
-    initC2TC(END_OBJ, TC_END_OBJ)
+    initC2TC(END_STRUCT, TC_END_STRUCT)
 }
 
 private fun ByteArray.initC2TC(c: Int, cl: Byte) {
@@ -75,20 +77,34 @@ private fun ByteArray.initC2TC(c: Char, cl: Byte) {
 private val Char.isNumeral: Boolean
     get() = this in '0'..'9'
 
-internal fun charToTokenClass(c: Char) = if (c.toInt() < CTC_MAX) C2TC[c.toInt()] else TC_OTHER
+internal fun charToTokenClass(c: Char) = if (c.toInt() < CTC_MAX) C2TC[c.toInt()] else TC_BEGIN_OBJ
 
 class BenReader(val source: String) {
 
-    var currentPosition: Int = 0 // position in source
+    val bytesTokenMap = mapOf(
+        TC_STR_SEP to "TC_STR_SEP",
+        TC_BEGIN_STR to "TC_BEGIN_STR",
+        TC_BEGIN_LIST to "TC_BEGIN_LIST",
+        TC_BEGIN_DICT to "TC_BEGIN_DICT",
+        TC_BEGIN_INT to "TC_BEGIN_INT",
+        TC_END_STRUCT to "TC_END_STRUCT",
+        TC_BEGIN_OBJ to "TC_BEGIN_OBJ",
+        TC_END_OBJ to "TC_END_OBJ",
+        TC_INVALID to "TC_INVALID",
+        TC_WS to "TC_WS",
+        TC_OTHER to "TC_OTHER",
+        TC_EOF to "TC_EOF"
+    )
 
+    var currentPosition: Int = 0 // position in source
     var tokenClass: Byte = TC_EOF
 
     public val isDone: Boolean
-        get() = tokenClass == TC_EOF
+        get() = tokenClass == TC_EOF || currentPosition >= source.length
 
     public val canBeginValue: Boolean
         get() = when (tokenClass) {
-            TC_BEGIN_INT, TC_BEGIN_DICT, TC_BEGIN_LIST, TC_BEGIN_STR, TC_OTHER -> true
+            TC_BEGIN_INT, TC_BEGIN_STR, TC_OTHER -> true
             else -> false
         }
 
@@ -101,7 +117,14 @@ class BenReader(val source: String) {
     private var buf = CharArray(64)
 
     internal inline fun requireTokenClass(expected: Byte, lazyErrorMsg: () -> String) {
-        if (tokenClass != expected) fail(tokenPosition, lazyErrorMsg())
+        val equivalentBegin = setOf(TC_BEGIN_DICT, TC_BEGIN_OBJ)
+        val equivalentEnd = setOf(TC_END_STRUCT, TC_END_OBJ)
+        when (expected) {
+            in equivalentBegin -> if (!equivalentBegin.contains(tokenClass)) fail(tokenPosition, lazyErrorMsg())
+            in equivalentEnd -> if (!equivalentEnd.contains(tokenClass)) fail(tokenPosition, lazyErrorMsg())
+            else -> if (tokenClass != expected) fail(tokenPosition, lazyErrorMsg())
+        }
+//        if (tokenClass != expected) fail(tokenPosition, lazyErrorMsg())
     }
 
     init {
@@ -140,7 +163,18 @@ class BenReader(val source: String) {
         var curPos = currentPosition
         val maxLen = source.length
         while (true) {
-            if (curPos >= maxLen) {
+//            if (curPos == 0 && tokenClass == TC_EOF) {
+//                tokenPosition = curPos
+//                tokenClass = TC_BEGIN_OBJ
+//                return
+//            }
+            if (curPos == maxLen && tokenClass == TC_END_STRUCT) {
+                tokenPosition = curPos
+                tokenClass = TC_END_OBJ
+                currentPosition = curPos + 1
+                return
+            }
+            if (curPos >= maxLen || tokenClass == TC_END_OBJ) {
                 tokenPosition = curPos
                 tokenClass = TC_EOF
                 return
@@ -173,7 +207,7 @@ class BenReader(val source: String) {
         val c = source[startPos]
         require(c == BEGIN_INT, startPos) {"Unexpected beginning of integer"}
         val curPos = startPos + 1
-        val endIndex = source.indexOf(END_OBJ, startPos)
+        val endIndex = source.indexOf(END_STRUCT, startPos)
         require(endIndex != -1, startPos) {"Couldn't determine end of integer"}
         offset = curPos
         length = endIndex - curPos
@@ -207,7 +241,7 @@ class BenReader(val source: String) {
         do {
             when (tokenClass) {
                 TC_BEGIN_LIST, TC_BEGIN_DICT -> tokenStack.add(tokenClass)
-                TC_END_OBJ -> {
+                TC_END_STRUCT -> {
                     tokenStack.removeAt(tokenStack.size - 1)
                 }
             }
@@ -215,7 +249,7 @@ class BenReader(val source: String) {
     }
 
     override fun toString(): String {
-        return "BenReader(source='$source', currentPosition=$currentPosition, tokenClass=$tokenClass, tokenPosition=$tokenPosition, offset=$offset, length=$length)"
+        return "BenReader(source='$source', maxLen=${source.length} currentPosition=$currentPosition, tokenClass=$tokenClass, tokenPosition=$tokenPosition, offset=$offset, length=$length)"
     }
 
 }
