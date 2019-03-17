@@ -71,7 +71,22 @@ internal class StreamingBenInput(
 //            if (reader.tokenClass in setOf(TC_END_STRUCT)) reader.nextToken()
             when (mode) {
                 WriteMode.LIST -> {
-                    return if (!reader.canBeginValue) CompositeDecoder.READ_DONE else ++currentIndex
+                    return if (!reader.canBeginValue) {
+                        val nestedList =
+                            (desc.elementsCount >= 1/* && desc.getElementDescriptor(0).kind is StructureKind.LIST*/)
+                        if (nestedList) {
+                            if (reader.tokenClass !in setOf(TC_BEGIN_LIST, TC_BEGIN_DICT)) {
+//                                reader.nextToken()
+                                CompositeDecoder.READ_DONE
+                            } else {
+                                ++currentIndex
+                            }
+                        } else {
+                            CompositeDecoder.READ_DONE
+                        }
+                    } else {
+                        ++currentIndex
+                    }
                 }
                 WriteMode.DICT -> {
 //                    if (currentIndex >= 2) currentIndex = 0

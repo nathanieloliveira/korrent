@@ -15,12 +15,23 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.korrent.bencode
+package com.korrent.io
 
-import kotlinx.serialization.SerializationException
+import kotlinx.io.Reader
+import kotlinx.io.charsets.Charset
+import java.io.File
+import java.io.FileInputStream
+import java.io.InputStreamReader
 
-sealed class BenException(message: String): SerializationException(message)
+actual fun readFile(path: String, useFile: (Reader) -> Unit) {
+    val file = File(path)
+    InputStreamReader(FileInputStream(file)).use { reader ->
+        useFile(reader)
+    }
+}
 
-class BenSpecificationException(message: String) : BenException(message)
-class BenParsingException(position: Int, message: String): BenException("Invalid Bencoding at $position: $message")
-class BenEncodingException(message: String) : BenException("Invalid Bencoding: $message")
+actual fun readWholeFile(path: String, charset: Charset): String {
+    InputStreamReader(FileInputStream(File(path)), charset).use { reader ->
+        return reader.readText()
+    }
+}

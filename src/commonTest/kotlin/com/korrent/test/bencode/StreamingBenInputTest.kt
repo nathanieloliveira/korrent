@@ -18,10 +18,7 @@
 package com.korrent.test.bencode
 
 import com.korrent.bencode.Ben
-import kotlinx.serialization.ImplicitReflectionSerializer
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.parseList
-import kotlinx.serialization.parseMap
+import kotlinx.serialization.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -40,7 +37,32 @@ data class ObjWithList(val list: List<String>)
 @Serializable
 data class ObjWithListAndMap(val list: List<String>, val map: Map<String, String>)
 
+@Serializable
+data class ObjWithOptional(@Optional val a: String? = null)
+
+@Serializable
+data class ObjWithNestedLists(val list: List<List<String>>)
+
+@Serializable
+data class ObjWithListInt(val list: List<Int>)
+
 class StreamingBenInputTest {
+
+    @Test
+    fun testObjWithOptionalNull() {
+        val testObj = ObjWithOptional()
+        val testString = "de"
+        val des = Ben.plain.parse(ObjWithOptional.serializer(), testString)
+        assertEquals(testObj, des)
+    }
+
+    @Test
+    fun testObjWithOptionalSet() {
+        val testObj = ObjWithOptional("test")
+        val testString = "d1:a4:teste"
+        val des = Ben.plain.parse(ObjWithOptional.serializer(), testString)
+        assertEquals(testObj, des)
+    }
 
     @ImplicitReflectionSerializer
     @Test
@@ -110,5 +132,29 @@ class StreamingBenInputTest {
         val testString = "d4:listl5:Hello5:Worlde3:mapd1:a5:Hello1:b5:Worldee"
         val des = Ben.plain.parse(ObjWithListAndMap.serializer(), testString)
         assertEquals(testObj, des)
+    }
+
+    @Test
+    fun testDeserializeObjWithNestedLists() {
+        val obj = ObjWithNestedLists(listOf(listOf("a", "b"), listOf("c", "d")))
+        val str = "d4:listll1:a1:bel1:c1:deee"
+        val des = Ben.plain.parse(ObjWithNestedLists.serializer(), str)
+        assertEquals(obj, des)
+    }
+
+    @Test
+    fun testDeserializeListSimple() {
+        val obj = NestedList(listOf(Simple("hello", 10), Simple("hello", 11)))
+        val str = "d4:listld1:a5:hello1:bi10eed1:a5:hello1:bi11eee"
+        val des = Ben.plain.parse(NestedList.serializer(), str)
+        assertEquals(obj, des)
+    }
+
+    @Test
+    fun testDeserializeListInt() {
+        val obj = ObjWithListInt(listOf(1, 2, 3, 4))
+        val str = "d4:listli1ei2ei3ei4eee"
+        val des = Ben.plain.parse(ObjWithListInt.serializer(), str)
+        assertEquals(obj, des)
     }
 }

@@ -21,7 +21,10 @@ import kotlinx.serialization.*
 import kotlinx.serialization.context.SerialContext
 import kotlinx.serialization.context.SerialModule
 
-class Ben(val updateMode: UpdateMode = UpdateMode.OVERWRITE) : AbstractSerialFormat(), StringFormat {
+class Ben(
+    val updateMode: UpdateMode = UpdateMode.OVERWRITE,
+    val encodeDefaults: Boolean = true
+) : AbstractSerialFormat(), StringFormat {
 
     override fun <T> parse(deserializer: DeserializationStrategy<T>, string: String): T {
         val reader = BenReader(string)
@@ -34,7 +37,13 @@ class Ben(val updateMode: UpdateMode = UpdateMode.OVERWRITE) : AbstractSerialFor
     }
 
     override fun <T> stringify(serializer: SerializationStrategy<T>, obj: T): String {
-        TODO()
+        val encoder = StreamingBenOutput(
+            this,
+            WriteMode.OBJ,
+            arrayOfNulls(WriteMode.values().size)
+        )
+        encoder.encode(serializer, obj)
+        return encoder.getResult()
     }
 
     companion object : StringFormat {

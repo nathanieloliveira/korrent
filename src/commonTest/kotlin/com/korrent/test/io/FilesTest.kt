@@ -15,12 +15,23 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.korrent.bencode
+package com.korrent.test.io
 
-import kotlinx.serialization.SerializationException
+import com.korrent.readTorrentFile
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
-sealed class BenException(message: String): SerializationException(message)
+class FilesTest {
 
-class BenSpecificationException(message: String) : BenException(message)
-class BenParsingException(position: Int, message: String): BenException("Invalid Bencoding at $position: $message")
-class BenEncodingException(message: String) : BenException("Invalid Bencoding: $message")
+    @Test
+    fun testReadTorrentFile() {
+        val path = "spider-man.torrent"
+        val torrent = readTorrentFile(path)
+        val name = "Spider-Man Into The Spider-Verse (2018) [WEBRip] [1080p] [YTS.AM]"
+        assertTrue { torrent.info.pieces.isNotEmpty() }
+        assertEquals(name, torrent.info.name)
+//        assertEquals(name, torrent.info?.name)
+    }
+
+}

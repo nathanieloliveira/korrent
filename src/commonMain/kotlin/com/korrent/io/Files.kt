@@ -15,12 +15,10 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package com.korrent.bencode
+package com.korrent.io
 
-import kotlinx.serialization.SerializationException
+import kotlinx.io.Reader
+import kotlinx.io.charsets.Charset
 
-sealed class BenException(message: String): SerializationException(message)
-
-class BenSpecificationException(message: String) : BenException(message)
-class BenParsingException(position: Int, message: String): BenException("Invalid Bencoding at $position: $message")
-class BenEncodingException(message: String) : BenException("Invalid Bencoding: $message")
+expect fun readFile(path: String, useFile: (Reader) -> Unit)
+expect fun readWholeFile(path: String, charset: Charset = Charset.forName("UTF-8")): String

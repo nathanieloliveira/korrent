@@ -19,6 +19,8 @@ package com.korrent.bencode
 
 import kotlinx.serialization.SharedImmutable
 
+internal const val NULL = "null"
+
 // special chars
 internal const val STR_SEP    = ':'
 internal const val BEGIN_LIST = 'l'
@@ -211,7 +213,7 @@ class BenReader(val source: String) {
         require(endIndex != -1, startPos) {"Couldn't determine end of integer"}
         offset = curPos
         length = endIndex - curPos
-        currentPosition = endIndex
+        currentPosition = endIndex + 1
         tokenClass = TC_OTHER
     }
 

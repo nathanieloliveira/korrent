@@ -17,8 +17,12 @@
 
 package com.korrent
 
+import com.korrent.bencode.Ben
+import com.korrent.io.readWholeFile
+import com.korrent.model.Torrent
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.io.charsets.Charset
 import kotlinx.io.core.ByteReadPacket
 import kotlinx.io.core.IoBuffer
 import kotlinx.io.core.readLongLittleEndian
@@ -53,4 +57,8 @@ class Korrent : CoroutineScope {
         delay(1000)
         return 10
     }
+}
+
+fun readTorrentFile(path: String): Torrent {
+    return Ben.plain.parse(Torrent.serializer(), readWholeFile(path, Charset.forName("ASCII")))
 }
