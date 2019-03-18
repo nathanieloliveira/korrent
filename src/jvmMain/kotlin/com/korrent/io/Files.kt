@@ -22,6 +22,7 @@ import kotlinx.io.charsets.Charset
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
+import kotlin.coroutines.CoroutineContext
 
 actual fun readFile(path: String, useFile: (Reader) -> Unit) {
     val file = File(path)
@@ -33,5 +34,15 @@ actual fun readFile(path: String, useFile: (Reader) -> Unit) {
 actual fun readWholeFile(path: String, charset: Charset): String {
     InputStreamReader(FileInputStream(File(path)), charset).use { reader ->
         return reader.readText()
+    }
+}
+
+actual fun threadSleep(ms: Long) {
+    Thread.sleep(ms)
+}
+
+actual inline fun runBlocking(context: CoroutineContext, crossinline block: suspend () -> Unit) {
+    kotlinx.coroutines.runBlocking(context) {
+        block()
     }
 }

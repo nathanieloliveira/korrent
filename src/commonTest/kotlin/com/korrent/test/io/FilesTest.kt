@@ -29,9 +29,11 @@ class FilesTest {
         val path = "spider-man.torrent"
         val torrent = readTorrentFile(path)
         val name = "Spider-Man Into The Spider-Verse (2018) [WEBRip] [1080p] [YTS.AM]"
+        print(torrent)
         assertTrue { torrent.info.pieces.isNotEmpty() }
         assertEquals(name, torrent.info.name)
 //        assertEquals(name, torrent.info?.name)
+
     }
 
 }

@@ -19,6 +19,11 @@ package com.korrent.io
 
 import kotlinx.io.Reader
 import kotlinx.io.charsets.Charset
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 expect fun readFile(path: String, useFile: (Reader) -> Unit)
 expect fun readWholeFile(path: String, charset: Charset = Charset.forName("UTF-8")): String
+expect fun threadSleep(ms: Long)
+
+expect inline fun runBlocking(context: CoroutineContext = EmptyCoroutineContext, crossinline block: suspend () -> Unit)
