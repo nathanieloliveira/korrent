@@ -53,4 +53,14 @@ data class Torrent(
     val info: InfoDictionary,
     @Optional val encoding: String? = null,
     @Optional val comment: String? = null
-)
+) {
+    fun getTotalBytes(): Long {
+        if (info.files != null) {
+            return info.files.fold(0L) { _, fileInfo ->
+                return@fold fileInfo.length
+            }
+        } else {
+            return info.length
+        }
+    }
+}

@@ -27,3 +27,11 @@ expect fun readWholeFile(path: String, charset: Charset = Charset.forName("UTF-8
 expect fun threadSleep(ms: Long)
 
 expect inline fun runBlocking(context: CoroutineContext = EmptyCoroutineContext, crossinline block: suspend () -> Unit)
+
+expect fun getCurrentTimeMillis(): Long
+
+expect fun sha1Hash(string: String): ByteArray
+
+fun openSocket() {
+
+}

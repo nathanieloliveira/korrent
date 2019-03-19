@@ -22,6 +22,7 @@ import kotlinx.io.charsets.Charset
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
+import java.security.MessageDigest
 import kotlin.coroutines.CoroutineContext
 
 actual fun readFile(path: String, useFile: (Reader) -> Unit) {
@@ -45,4 +46,13 @@ actual inline fun runBlocking(context: CoroutineContext, crossinline block: susp
     kotlinx.coroutines.runBlocking(context) {
         block()
     }
+}
+
+actual fun getCurrentTimeMillis(): Long {
+    return System.currentTimeMillis()
+}
+
+actual fun sha1Hash(string: String): ByteArray {
+    val sha1 = MessageDigest.getInstance("SHA1")
+    return sha1.digest(string.toByteArray(Charsets.ISO_8859_1))
 }

@@ -19,10 +19,12 @@ package com.korrent
 
 import com.korrent.bencode.Ben
 import com.korrent.io.readWholeFile
+import com.korrent.io.sha1Hash
 import com.korrent.model.Torrent
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.io.charsets.Charset
+import kotlinx.io.charsets.Charsets
 import kotlinx.io.core.ByteReadPacket
 import kotlinx.io.core.IoBuffer
 import kotlinx.io.core.readLongLittleEndian
@@ -59,6 +61,18 @@ class Korrent : CoroutineScope {
     }
 }
 
-fun readTorrentFile(path: String): Torrent {
+fun parseTorrentFile(path: String): Torrent {
     return Ben.plain.parse(Torrent.serializer(), readWholeFile(path, Charset.forName("ASCII")))
+}
+
+fun parseTorrentHash(path: String): ByteArray {
+    val content = readWholeFile(path, Charsets.ISO_8859_1)
+    // find where is info key
+    val (infoIndex, _) = content.findAnyOf(listOf("4:info")) ?: -1 to ""
+    if (infoIndex != -1) {
+        val infoValue = content.substring(infoIndex + 6, content.length - 1)
+        return sha1Hash(infoValue)
+    } else {
+        throw RuntimeException("couldn't find info index")
+    }
 }

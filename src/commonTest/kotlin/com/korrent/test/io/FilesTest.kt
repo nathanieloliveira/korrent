@@ -17,7 +17,7 @@
 
 package com.korrent.test.io
 
-import com.korrent.readTorrentFile
+import com.korrent.parseTorrentFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -27,7 +27,7 @@ class FilesTest {
     @Test
     fun testReadTorrentFile() {
         val path = "spider-man.torrent"
-        val torrent = readTorrentFile(path)
+        val torrent = parseTorrentFile(path)
         val name = "Spider-Man Into The Spider-Verse (2018) [WEBRip] [1080p] [YTS.AM]"
         print(torrent)
         assertTrue { torrent.info.pieces.isNotEmpty() }

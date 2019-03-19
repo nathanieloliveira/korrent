@@ -17,7 +17,9 @@
 
 package com.korrent.utilities
 
-import kotlinx.io.StringReader
+import com.korrent.io.getCurrentTimeMillis
+import kotlinx.io.ByteArrayOutputStream
+import kotlin.random.Random
 
 private val bytesToHexChar = CharArray(16).apply {
     this[0] = '0'
@@ -47,14 +49,14 @@ private fun byteToHexString(byte: Byte): String {
     return "${bytesToHexChar[ms]}${bytesToHexChar[ls]}"
 }
 
-private val bytesToHexMap = Array(255) { "" }.apply {
-    for (b in 0 until 255) {
+private val bytesToHexMap = Array(256) { "" }.apply {
+    for (b in 0 until 256) {
         this[b] = byteToHexString(b.toByte())
     }
 }
 
 private val hexStringToByteMap = mutableMapOf<String, Byte>().apply {
-    for (b in 0 until 255) {
+    for (b in 0 until 256) {
         put(byteToHexString(b.toByte()), b.toByte())
     }
 }.toMap()
@@ -82,7 +84,50 @@ fun ByteArray.toUrlEncodedString(): String {
     return builder.toString()
 }
 
+@ExperimentalUnsignedTypes
+fun ByteArray.toHexString(): String {
+    val builder = StringBuilder()
+    for (b in this) {
+        builder.append(b.toHexString())
+    }
+    return builder.toString()
+}
+
+@ExperimentalUnsignedTypes
+fun byteArrayFromHexString(hexString: String): ByteArray {
+    require(hexString.length % 2 == 0) { "String length was not even (length='${hexString.length}')" }
+    val buffer = ByteArrayOutputStream()
+    for (i in 0 until hexString.length step 2) {
+        val subs = hexString.substring(i, i + 2).toUpperCase()
+        val byte = hexStringToByteMap.getValue(subs).toUByte()
+        buffer.write(byte.toInt())
+    }
+    return buffer.toByteArray()
+}
+
 fun String.fromUrlEncodedByteArray(): ByteArray {
-    val reader = StringReader(this)
-    TODO()
+    val os = ByteArrayOutputStream()
+    var currentIndex = 0
+    while (currentIndex < length) {
+        val char = this[currentIndex]
+        currentIndex += when (char) {
+            '%' -> {
+                val byte = hexStringToByteMap.getValue(substring(currentIndex + 1, currentIndex + 3))
+                os.write(byte.toInt())
+                3
+            }
+            else -> {
+                os.write(char.toInt())
+                1
+            }
+        }
+    }
+    return os.toByteArray()
+}
+
+fun generatePeerId(): ByteArray {
+    val array = ByteArray(20)
+    val random = Random(getCurrentTimeMillis())
+    random.nextBytes(array)
+    return array
 }
