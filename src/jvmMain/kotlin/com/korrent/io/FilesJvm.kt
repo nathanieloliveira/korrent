@@ -17,6 +17,10 @@
 
 package com.korrent.io
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.io.Reader
 import kotlinx.io.charsets.Charset
 import java.io.File
@@ -24,6 +28,11 @@ import java.io.FileInputStream
 import java.io.InputStreamReader
 import java.security.MessageDigest
 import kotlin.coroutines.CoroutineContext
+
+actual fun formatString(format: String, vararg args: Any?): String {
+    val string = String.format(format, *args)
+    return string
+}
 
 actual fun readFile(path: String, useFile: (Reader) -> Unit) {
     val file = File(path)
@@ -42,8 +51,18 @@ actual fun threadSleep(ms: Long) {
     Thread.sleep(ms)
 }
 
-actual inline fun runBlocking(context: CoroutineContext, crossinline block: suspend () -> Unit) {
-    kotlinx.coroutines.runBlocking(context) {
+actual inline fun <T> kRunBlocking(context: CoroutineContext, crossinline block: suspend CoroutineScope.() -> T): T {
+    return kotlinx.coroutines.runBlocking(context) {
+        block(this)
+    }
+}
+
+actual fun <T> CoroutineScope.runAsync(
+    context: CoroutineContext,
+    start: CoroutineStart,
+    block: suspend CoroutineScope.() -> T
+): Deferred<T> {
+    return async {
         block()
     }
 }

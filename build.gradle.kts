@@ -32,6 +32,23 @@
  *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/*
+ * Copyright (C) 2018 Nathaniel Salvador de Oliveira
+ *
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 plugins {
     val kotlinVersion = "1.3.21"
     kotlin("multiplatform") version kotlinVersion
@@ -40,6 +57,7 @@ plugins {
 }
 
 repositories {
+    mavenLocal()
     jcenter()
     mavenCentral()
     maven("https://kotlin.bintray.com/kotlinx")
@@ -61,6 +79,12 @@ kotlin {
                 implementation("io.ktor:ktor-client-core:1.1.3")
                 implementation("io.ktor:ktor-client-cio:1.1.3")
                 implementation("io.ktor:ktor-network:1.1.3")
+                implementation("io.ktor:ktor-http:1.1.3")
+                implementation("io.ktor:ktor-http-cio:1.1.3")
+
+//                XML serialization
+                implementation("net.devrieze:xmlutil:0.8.2-SNAPSHOT")
+                implementation("net.devrieze:xmlutil-serialization:0.8.2-SNAPSHOT")
             }
         }
 
@@ -76,6 +100,12 @@ kotlin {
                 implementation(kotlin("stdlib-jdk8"))
                 api("org.jetbrains.kotlinx:kotlinx-serialization-runtime:0.10.0")
                 api("org.jetbrains.kotlinx:kotlinx-io-jvm:0.1.7")
+
+                implementation("io.ktor:ktor-server-netty:1.1.3")
+
+//                XML
+                implementation("net.devrieze:xmlutil-jvm:0.8.2-SNAPSHOT")
+                implementation("net.devrieze:xmlutil-serialization-jvm:0.8.2-SNAPSHOT")
             }
         }
 

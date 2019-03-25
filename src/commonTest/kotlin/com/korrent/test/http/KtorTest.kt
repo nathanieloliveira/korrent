@@ -17,27 +17,25 @@
 
 package com.korrent.test.http
 
-import com.korrent.io.runBlocking
+import com.korrent.http.getHttpClient
+import com.korrent.io.kRunBlocking
 import com.korrent.model.Event
 import com.korrent.model.TrackerRequest
 import com.korrent.parseTorrentFile
 import com.korrent.parseTorrentHash
 import com.korrent.utilities.*
-import io.ktor.client.HttpClient
 import io.ktor.client.request.get
-import io.ktor.http.URLBuilder
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class KtorTest {
 
-    private val client by lazy { HttpClient() }
+    private val client by lazy { getHttpClient() }
 
     @Test
-    fun testSimpleRequest() = runBlocking {
+    fun testSimpleRequest() = kRunBlocking {
         val request = client.get<String>("http://google.com")
-        URLBuilder()
         print(request)
     }
 
@@ -114,7 +112,7 @@ class KtorTest {
 
     @ExperimentalUnsignedTypes
     @Test
-    fun getRequestFromTracker() = runBlocking {
+    fun getRequestFromTracker() = kRunBlocking {
         val torrent = parseTorrentFile("spider-man.torrent")
         val url = torrent.announce
         val parsedHash = parseTorrentHash("spider-man.torrent")

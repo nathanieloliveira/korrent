@@ -17,21 +17,42 @@
 
 package com.korrent.io
 
+import io.ktor.client.HttpClient
+import io.ktor.util.pipeline.PipelinePhase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
 import kotlinx.io.Reader
 import kotlinx.io.charsets.Charset
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
+expect fun formatString(format: String, vararg args: Any?): String
+
 expect fun readFile(path: String, useFile: (Reader) -> Unit)
 expect fun readWholeFile(path: String, charset: Charset = Charset.forName("UTF-8")): String
 expect fun threadSleep(ms: Long)
 
-expect inline fun runBlocking(context: CoroutineContext = EmptyCoroutineContext, crossinline block: suspend () -> Unit)
+expect inline fun <T> kRunBlocking(
+    context: CoroutineContext = EmptyCoroutineContext,
+    crossinline block: suspend CoroutineScope.() -> T
+): T
 
 expect fun getCurrentTimeMillis(): Long
 
 expect fun sha1Hash(string: String): ByteArray
 
-fun openSocket() {
+expect fun <T> CoroutineScope.runAsync(
+    context: CoroutineContext = EmptyCoroutineContext,
+    start: CoroutineStart = CoroutineStart.DEFAULT,
+    block: suspend CoroutineScope.() -> T
+): Deferred<T>
 
+fun test() {
+    val client = HttpClient { }
+
+
+    client.responsePipeline.intercept(PipelinePhase(" ")) {
+        this.context.request.content
+    }
 }
